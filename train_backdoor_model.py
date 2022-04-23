@@ -111,7 +111,7 @@ def train(model, optimizer, train_loader, poisoned_test_loader, test_loader, num
             loss1 = acc_loss
             loss1.backward()
             optimizer.step()
-        print('epoch, %d\ttrain %.4f ' % (i, accuracy / len(train_loader)), end='\t')
+        print('epoch, %d\tTrain acc: %.4f ' % (i, accuracy / len(train_loader)), end='\t')
 
 
         model.eval()
@@ -128,7 +128,7 @@ def train(model, optimizer, train_loader, poisoned_test_loader, test_loader, num
                 pred = p.argmax(dim=1, keepdim=True)
                 # idxs_mask = pred.eq(target.view_as(pred)).view(-1)
                 accuracy += pred.eq(target.view_as(pred)).sum().item() / data.size(0)
-            print('test %.4f' % (accuracy / len(test_loader)), end='\t')
+            print('Clean testing acc: %.4f' % (accuracy / len(test_loader)), end='\t')
 
         with torch.no_grad():
             accuracy = 0
@@ -141,7 +141,7 @@ def train(model, optimizer, train_loader, poisoned_test_loader, test_loader, num
                 pred = p.argmax(dim=1, keepdim=True)
                 # idxs_mask = pred.eq(target.view_as(pred)).view(-1)
                 accuracy += pred.eq(target.view_as(pred)).sum().item() / data.size(0)
-            print('test %.4f' % (accuracy / len(poisoned_test_loader)))
+            print('Poisoned testing acc: %.4f' % (accuracy / len(poisoned_test_loader)))
 
     return model
 
@@ -251,7 +251,7 @@ def main(
     model.apply(freeze_bn_stats)
     df_test, df_test_avg, in_score, clean_v_ls = test_in(model, test_loader, num_classes, df_test, df_test_avg, 0)
     df = df_test_avg.tail(1)
-    test_log ='Test in:\tacc: {:.3f},\t'\
+    test_log ='Clean Testing Dataset:\tacc: {:.3f},\t'\
               'ent: {:.3f}({:.3f}/{:.3f}),\t'\
               'vac: {:.3f},\t'\
               'disn: {:.3f}({:.3f}/{:.3f}),\t'\
@@ -275,7 +275,7 @@ def main(
     model.apply(freeze_bn_stats)
     df_test, df_test_avg, in_score, bd_v_ls = test_in(model, poisoned_test_loader, num_classes, df_test, df_test_avg, 0)
     df = df_test_avg.tail(1)
-    test_log ='Test in:\tacc: {:.3f},\t'\
+    test_log ='Poisoned Testing Dataset:\tacc: {:.3f},\t'\
               'ent: {:.3f}({:.3f}/{:.3f}),\t'\
               'vac: {:.3f},\t'\
               'disn: {:.3f}({:.3f}/{:.3f}),\t'\
