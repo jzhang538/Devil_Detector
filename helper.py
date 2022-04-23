@@ -88,7 +88,7 @@ def get_data(dataname, batch_size, use_augment=True, use_split=True, split=10000
     return train_loader, valid_loader, test_loader
 
 # Generate dataloaders of backdoored datasets.
-def get_backdoored_mnist(dataname, batch_size, use_augment=True, use_split=True, split=10000):
+def get_backdoored_mnist(dataname, batch_size, poison_rate, use_augment=True, use_split=True, split=10000):
     if dataname in ['MNIST', 'FashionMNIST']:
         train_transform = augment_transform_bw if use_augment else normal_transform
 
@@ -111,7 +111,6 @@ def get_backdoored_mnist(dataname, batch_size, use_augment=True, use_split=True,
 
     poison_type = 'badnets'
     poison_target = 0
-    poison_rate = 0.05
     trigger_alpha = 1.0
     
 

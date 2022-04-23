@@ -167,6 +167,8 @@ def main(
     grad_clip = 1,
     n_epochs = 60,
     batch_size = 128,
+    poison_rate = 0.1,
+    use_softmax = False,
     lambda_term=10,
     weight_decay=0.0001,
     nz=128,
@@ -190,7 +192,7 @@ def main(
     in_channel = 1 if dataname in ['MNIST'] else 3
 
     args =['path', 'dataname', 'network', 'gamma', 'batch_size', 'n_epochs', 'grad_clip','nz'\
-    , 'use_augment', 'lambda_term', 'weight_decay', 'log_interval', 'use_validation', 'num_classes', 'split', 'train_flag']
+    , 'use_augment', 'lambda_term', 'weight_decay', 'log_interval', 'use_validation', 'num_classes', 'split', 'train_flag', 'poison_rate', 'use_softmax']
 
     record ={}
     print('---------%s-----------\n'%current_time)
@@ -213,21 +215,14 @@ def main(
         if not train_flag:
             model.classifier.load_state_dict(torch.load('ckpt/{}'.format(model_name)))
 
-        train_loader, poisoned_test_loader, test_loader = get_backdoored_cifar(dataname, batch_size, use_augment=use_augment, use_split= False)
-        _, _, ood_loader_list['CIFAR100'] = get_data(dataname='CIFAR100', batch_size=batch_size, split=10000, use_augment=False)
-        ood_loader_list['LSUN'] = get_lsun(batch_size, split=10000)
-        _, ood_loader_list['SVHN'], _ = get_data('SVHN', batch_size=batch_size, split=10000, use_augment=False)
+        train_loader, poisoned_test_loader, test_loader = get_backdoored_cifar(dataname, batch_size, poison_rate, use_augment=use_augment, use_split= False)
     if dataname == 'MNIST':
         model_name = 'lenet_mnist_eval.pt'
         model = ENN(lenet5(1)).to(device)
         if not train_flag:
             model.classifier.load_state_dict(torch.load('ckpt/{}'.format(model_name)))
 
-        train_loader, poisoned_test_loader, test_loader = get_backdoored_mnist(dataname, batch_size, use_augment=use_augment, use_split= False)
-        notmnist_loader = get_notmnist(batch_size, split)
-        _, fmnist_loader, _ = get_data('FashionMNIST', batch_size, use_augment=False, use_split=True, split=split)
-        ood_loader_list['notMNIST'] = notmnist_loader
-        ood_loader_list['FashionMNIST'] = fmnist_loader
+        train_loader, poisoned_test_loader, test_loader = get_backdoored_mnist(dataname, batch_size, poison_rate, use_augment=use_augment, use_split= False)
 
 
 
@@ -236,7 +231,7 @@ def main(
     # #######################
     optimizer = optim.Adam(model.parameters(), lr=1e-4)
     if train_flag==True:
-        model = train(model, optimizer, train_loader, poisoned_test_loader, test_loader, num_classes, epochs=30, use_softmax=False)
+        model = train(model, optimizer, train_loader, poisoned_test_loader, test_loader, num_classes, epochs=30, use_softmax=use_softmax)
         torch.save(model.classifier.state_dict(), 'ckpt/{}'.format(model_name))
 
 
